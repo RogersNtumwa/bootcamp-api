@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const slugify = require("slugify");
 
 const bootcompSchema = new mongoose.Schema({
   name: {
@@ -35,7 +36,7 @@ const bootcompSchema = new mongoose.Schema({
   },
   address: {
     type: String,
-    required: [true, "please your address"],
+    required: [true, "please add your address"],
   },
   location: {
     type: {
@@ -93,6 +94,12 @@ const bootcompSchema = new mongoose.Schema({
     type: Date,
     default: Date.now(),
   },
+});
+
+// Create slug from the name
+bootcompSchema.pre("save", function (next) {
+  this.slug = slugify(this.name, {lower:true})
+  next();
 });
 
 const Bootcomp = mongoose.model("Bootcomp", bootcompSchema);

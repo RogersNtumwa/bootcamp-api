@@ -1,119 +1,73 @@
 const { Bootcomp } = require("../models/Bootcomp");
+const errorResponse = require("../utils/errorResponse");
+const asyncHandler = require("../middleware/async");
 
 // @desc   get all bootcomps
 // @route   /api/vi/bootcomps
 // @access   public
-exports.getbootcomps = async (req, res) => {
-  try {
-    const data = await Bootcomp.find();
-    res.status(200).send({
-      status: "success",
-      count: data.length,
-      data,
-    });
-  } catch (error) {
-    res.status(400).send({
-      status: "fail",
-      data: {
-        error: error.errmsg,
-      },
-    });
-  }
-};
+exports.getbootcomps = asyncHandler(async (req, res) => {
+  const data = await Bootcomp.find();
+  res.status(200).send({
+    status: "success",
+    count: data.length,
+    data,
+  });
+});
 
 // @desc   get asingle bootcomps
 // @route   /api/vi/bootcomps/id
 // @access   public
-exports.getbootcomp = async (req, res) => {
-  try {
-    const data = await Bootcomp.findById(req.params.id);
-    if (!data)
-      return res.status(404).send({
-        status: "fail",
-        message: "Bootcomp with specified ID not found",
-      });
-    res.status(200).send({
-      status: "success",
-      data,
-    });
-  } catch (error) {
-    res.status(404).send({
-      status: "fail",
-      data: {
-        error: error.errmsg,
-      },
-    });
-  }
-};
+exports.getbootcomp = asyncHandler(async (req, res, next) => {
+  const data = await Bootcomp.findById(req.params.id);
+  if (!data)
+    return next(
+      new errorResponse(`No bootcomp found with id ${req.params.id}`, 404)
+    );
+  res.status(200).send({
+    status: "success",
+    data,
+  });
+});
 // @desc   create a bootcomp
 // @route   /api/vi/bootcomps
 // @access   private
-exports.createbootcomp = async (req, res) => {
-  try {
-    const bootcomp = await Bootcomp.create(req.body);
-    res.status(201).send({
-      status: "success",
-      data: bootcomp,
-    });
-  } catch (error) {
-    res.status(400).send({
-      status: "fail",
-      data: {
-        error: error.errmsg,
-      },
-    });
-  }
-};
+exports.createbootcomp = asyncHandler(async (req, res, next) => {
+  const bootcomp = await Bootcomp.create(req.body);
+  res.status(201).send({
+    status: "success",
+    data: bootcomp,
+  });
+});
 
 // @desc   update a bootcomp
 // @route   /api/vi/bootcomps/id
 // @access   private
-exports.updatebootcomp = async (req, res) => {
-  try {
-    const data = await Bootcomp.findByIdAndUpdate(req.params.id, req.body, {
-      new: true,
-      runValidators: true,
-    });
-    if (!data)
-      return res.status(404).send({
-        status: "fail",
-        message: "Bootcomp with specified ID not found",
-      });
-    res.status(200).send({
-      status: "success",
-      data,
-    });
-  } catch (error) {
-    res.status(304).send({
-      status: "fail",
-      data: {
-        error: error.errmsg,
-      },
-    });
-  }
-};
+exports.updatebootcomp = asyncHandler(async (req, res, next) => {
+  const data = await Bootcomp.findByIdAndUpdate(req.params.id, req.body, {
+    new: true,
+    runValidators: true,
+  });
+  if (!data)
+    return next(
+      new errorResponse(`No bootcomp found with id ${req.params.id}`, 404)
+    );
+  res.status(200).send({
+    status: "success",
+    data,
+  });
+});
 
 // @desc   delete a bootcomp
 // @route   /api/vi/bootcomps/id
 // @access   private
-exports.deletebootcomp = async (req, res) => {
-  try {
-    const data = await Bootcomp.findByIdAndRemove(req.params.id);
-    if (!data)
-      return res.status(404).send({
-        status: "fail",
-        message: "Bootcomp with specified ID not found",
-      });
-    res.status(200).send({
-      status: "success",
-      data: {},
-    });
-  } catch (error) {
-    res.status(304).send({
-      status: "fail",
-      data: {
-        error: error.errmsg,
-      },
-    });
-  }
-};
+exports.deletebootcomp = asyncHandler(async (req, res, next) => {
+  const data = await Bootcomp.findByIdAndRemove(req.params.id);
+  if (!data)
+    return next(
+      new errorResponse(`No bootcomp found with id ${req.params.id}`, 404)
+    );
+  res.status(200).send({
+    status: "success",
+    data: {},
+  });
+});

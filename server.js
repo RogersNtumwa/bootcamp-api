@@ -8,6 +8,7 @@ const bootcomps = require("./routes/bootcomps");
 const morgan = require("morgan");
 const mongo_connect = require("./config/database");
 const colors = require("colors");
+const errorhandler = require("./middleware/error");
 
 // load env vars
 dotenv.config({ path: "./config/config.env" });
@@ -30,6 +31,7 @@ app.use("/api/v1/bootcomps", bootcomps);
 // app.use("/api/v1/users", users);
 // app.use("/api/v1/auth", auth);
 
+app.use(errorhandler);
 const port = process.env.PORT || 3000;
 const server = app.listen(port, () =>
   console.log(
