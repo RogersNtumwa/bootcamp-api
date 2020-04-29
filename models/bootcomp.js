@@ -6,13 +6,13 @@ const bootcompSchema = new mongoose.Schema({
     required: [true, "Please anter a name"],
     unique: true,
     trim: true,
-    minlength: [50, "Name can't be longer than 50 characters"],
+    maxlength: [50, "Name can't be longer than 50 characters"],
   },
   slug: String,
   description: {
     type: String,
     required: [true, "Please anter a description"],
-    minlength: [500, "Description can't be longer than 500 characters"],
+    maxlength: [500, "Description can't be longer than 500 characters"],
   },
   website: {
     type: String,
@@ -41,11 +41,9 @@ const bootcompSchema = new mongoose.Schema({
     type: {
       type: String, // Don't do `{ location: { type: String } }`
       enum: ["Point"], // 'location.type' must be 'Point'
-      required: true,
     },
     coordinates: {
       type: [Number],
-      required: true,
       index: "2dsphere",
     },
     formattedaddress: String,
@@ -57,9 +55,9 @@ const bootcompSchema = new mongoose.Schema({
   careers: {
     type: [String],
     enum: [
-      "Web development",
-      "UI/UX designe",
-      "Mobile development",
+      "Web Development",
+      "UI/UX",
+      "Mobile Development",
       "Data Science",
       "Business",
       "Others",
