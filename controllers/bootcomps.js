@@ -1,15 +1,73 @@
 const { Bootcomp } = require("../models/Bootcomp");
 const errorResponse = require("../utils/errorResponse");
 const asyncHandler = require("../middleware/async");
+const geocoder = require("../utils/geocoder");
 
 // @desc   get all bootcomps
 // @route   /api/vi/bootcomps
 // @access   public
 exports.getbootcomps = asyncHandler(async (req, res) => {
-  const data = await Bootcomp.find();
+  let query;
+  const reqQuery = { ...req.query };
+
+  let removefields = ["sort", "select", "page", "limit"];
+
+  // loop over removefields and delete them from querystring
+  removefields.forEach((params) => delete reqQuery[params]);
+
+  // create a query String
+  let queryStr = JSON.stringify(reqQuery);
+
+  // creating operators like gt/lte etc
+  queryStr = queryStr.replace(
+    /\b(gt|gte|lt|lte|in)\b/g,
+    (match) => `$${match}`
+  );
+  query = Bootcomp.find(JSON.parse(queryStr));
+  // SELECT
+  if (req.query.select) {
+    const fields = req.query.select.split(",").join(" ");
+    query = query.select(fields);
+  }
+  // SORT
+  if (req.query.sort) {
+    const sortBy = req.query.sort.split(",").join(" ");
+    query = query.sort(sortBy);
+  } else {
+    query = query.sort("-createdAt");
+  }
+
+  // pAGINATION
+  const page = parseInt(req.query.page, 10) || 1;
+  const limit = parseInt(req.query.limit, 10) || 20;
+  const startIndex = (page - 1) * limit;
+  const endIndex = page * limit;
+  const total = await Bootcomp.countDocuments();
+  query.skip(startIndex).limit(limit);
+
+  // executing the query
+  const data = await query;
+
+  // pagination result
+  const pagination = {};
+
+  if (endIndex < total) {
+    pagination.next = {
+      page: page + 1,
+      limit,
+    };
+  }
+
+  if (startIndex > 0) {
+    pagination.prev = {
+      page: page - 1,
+      limit,
+    };
+  }
   res.status(200).send({
     status: "success",
     count: data.length,
+    pagination,
     data,
   });
 });
@@ -69,5 +127,31 @@ exports.deletebootcomp = asyncHandler(async (req, res, next) => {
   res.status(200).send({
     status: "success",
     data: {},
+  });
+});
+
+// @desc   Get data with in a radius
+// @route   /api/vi/bootcomps/radius/:zipcode/:distance
+// @access   private
+exports.getBootcampswithin = asyncHandler(async (req, res, next) => {
+  const { zipcode, distance } = req.params;
+
+  // Get lat/lng from geocoder
+  const loc = await geocoder.geocode(zipcode);
+  const lat = loc[0].latitude;
+  const lng = loc[0].longitude;
+
+  // Calc radius using radians
+  // Divide dist by radius of Earth
+  // Earth Radius = 3,963 mi / 6,378 km
+  const radius = distance / 3963;
+
+  const bootcamps = await Bootcomp.find({
+    location: { $geoWithin: { $centerSphere: [[lng, lat], radius] } },
+  });
+  res.status(200).send({
+    status: "success",
+    count: bootcamps.length,
+    data: bootcamps,
   });
 });

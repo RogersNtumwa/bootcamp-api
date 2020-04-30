@@ -6,7 +6,10 @@ const {
   getbootcomp,
   updatebootcomp,
   deletebootcomp,
+  getBootcampswithin,
 } = require("../controllers/bootcomps");
+
+router.route("/radius/:zipcode/:distance").get(getBootcampswithin);
 
 router.route("/").get(getbootcomps).post(createbootcomp);
 router
