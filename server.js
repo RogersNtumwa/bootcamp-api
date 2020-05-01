@@ -1,7 +1,9 @@
+const path = require("path");
 const express = require("express");
 const dotenv = require("dotenv");
 const bootcomps = require("./routes/bootcomps");
 const courses = require("./routes/courses");
+const fileuplaod = require("express-fileupload");
 // const reviews = require("./routes/reviews");
 // const auth = require("./routes/auth");
 // const users = require("./routes/users");
@@ -24,7 +26,12 @@ mongo_connect();
 if (process.env.NODE_ENV === "development") {
   app.use(morgan("dev"));
 }
+// file uploading
+app.use(fileuplaod());
 
+app.use(express.static(path.join(__dirname, "public")));
+
+// Routes
 app.use("/api/v1/bootcomps", bootcomps);
 app.use("/api/v1/courses", courses);
 // app.use("/api/v1/reviews", reviews);

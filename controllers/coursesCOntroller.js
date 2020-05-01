@@ -7,21 +7,16 @@ const errorResponse = require("../utils/errorResponse");
 // @route   /api/vi/cpurses
 // @access   public
 exports.getCourses = asyncHandler(async (req, res, next) => {
-  let query;
   if (req.params.bootcampId) {
-    query = Courses.find({ bootcamp: req.params.bootcampId });
-  } else {
-    query = Courses.find().populate({
-      path: "bootcamp",
-      select: "name description",
+    const courses = await Courses.find({ bootcamp: req.params.bootcampId });
+    return res.status(200).send({
+      status: "success",
+      count: courses.length,
+      courses,
     });
+  } else {
+    res.status(200).send(res.advancedResults);
   }
-  const data = await query;
-  res.status(200).send({
-    status: "success",
-    count: data.length,
-    data,
-  });
 });
 
 // @desc   get a course
