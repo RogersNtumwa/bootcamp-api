@@ -1,4 +1,4 @@
-const { Bootcomp } = require("../models/Bootcomp");
+const Bootcomp = require("../models/Bootcomp");
 const errorResponse = require("../utils/errorResponse");
 const asyncHandler = require("../middleware/async");
 const geocoder = require("../utils/geocoder");
@@ -23,7 +23,10 @@ exports.getbootcomps = asyncHandler(async (req, res) => {
     /\b(gt|gte|lt|lte|in)\b/g,
     (match) => `$${match}`
   );
-  query = Bootcomp.find(JSON.parse(queryStr));
+  query = Bootcomp.find(JSON.parse(queryStr)).populate({
+    path: "courses",
+    select: "title description duration",
+  });
   // SELECT
   if (req.query.select) {
     const fields = req.query.select.split(",").join(" ");
@@ -119,11 +122,12 @@ exports.updatebootcomp = asyncHandler(async (req, res, next) => {
 // @route   /api/vi/bootcomps/id
 // @access   private
 exports.deletebootcomp = asyncHandler(async (req, res, next) => {
-  const data = await Bootcomp.findByIdAndRemove(req.params.id);
+  const data = await Bootcomp.findById(req.params.id);
   if (!data)
     return next(
       new errorResponse(`No bootcomp found with id ${req.params.id}`, 404)
     );
+  data.remove();
   res.status(200).send({
     status: "success",
     data: {},

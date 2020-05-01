@@ -9,6 +9,13 @@ const {
   getBootcampswithin,
 } = require("../controllers/bootcomps");
 
+// other resources
+const courseRouter = require("./courses");
+
+// get course for specific bootcamps
+router.use("/:bootcampId/courses", courseRouter);
+
+// get bootcamps within a specific area range
 router.route("/radius/:zipcode/:distance").get(getBootcampswithin);
 
 router.route("/").get(getbootcomps).post(createbootcomp);
