@@ -4,13 +4,14 @@ const dotenv = require("dotenv");
 const bootcomps = require("./routes/bootcomps");
 const courses = require("./routes/courses");
 const fileuplaod = require("express-fileupload");
-// const reviews = require("./routes/reviews");
 // const auth = require("./routes/auth");
-// const users = require("./routes/users");
+// const reviews = require("./routes/reviews");
+const auth = require("./routes/auth");
 const morgan = require("morgan");
 const mongo_connect = require("./config/database");
 const colors = require("colors");
 const errorhandler = require("./middleware/error");
+const cookieParser = require("cookie-parser");
 
 // load env vars
 dotenv.config({ path: "./config/config.env" });
@@ -18,6 +19,9 @@ dotenv.config({ path: "./config/config.env" });
 // initialize application
 const app = express();
 app.use(express.json());
+
+// cookie parser
+app.use(cookieParser());
 
 // database connection
 mongo_connect();
@@ -34,8 +38,8 @@ app.use(express.static(path.join(__dirname, "public")));
 // Routes
 app.use("/api/v1/bootcomps", bootcomps);
 app.use("/api/v1/courses", courses);
+app.use("/api/v1/auth", auth);
 // app.use("/api/v1/reviews", reviews);
-// app.use("/api/v1/users", users);
 // app.use("/api/v1/auth", auth);
 
 app.use(errorhandler);

@@ -26,10 +26,14 @@ const courseSchema = new mongoose.Schema({
     ref: "Bootcomp",
     required: [true, "Please enter bootcomp"],
   },
+  user: {
+    type: mongoose.Schema.ObjectId,
+    ref: "User",
+    required: [true, "Please enter a User"],
+  },
 });
 // Static methos to get aerage of courses tuitions
 courseSchema.statics.getAvearageCost = async function (bootcampId) {
-  console.log("Calculating average cost...".blue);
   const obj = await this.aggregate([
     {
       $match: { bootcamp: bootcampId },

@@ -25,10 +25,25 @@ exports.getbootcomp = asyncHandler(async (req, res, next) => {
     data,
   });
 });
+
 // @desc   create a bootcomp
 // @route   /api/vi/bootcomps
 // @access   private
 exports.createbootcomp = asyncHandler(async (req, res, next) => {
+  // add user to req.body
+  req.body.user = req.user.id;
+  const publishedBootcamp = await Bootcomp.findOne({ user: req.user.id });
+
+  // if user is not an admin , they can only add one bootcamp
+  if (publishedBootcamp && req.user.role !== "admin") {
+    return next(
+      new errorResponse(
+        `User with ${req.user.id} has already published bootcamp`,
+        400
+      )
+    );
+  }
+
   const bootcomp = await Bootcomp.create(req.body);
   res.status(201).send({
     status: "success",
@@ -40,14 +55,25 @@ exports.createbootcomp = asyncHandler(async (req, res, next) => {
 // @route   /api/vi/bootcomps/id
 // @access   private
 exports.updatebootcomp = asyncHandler(async (req, res, next) => {
-  const data = await Bootcomp.findByIdAndUpdate(req.params.id, req.body, {
-    new: true,
-    runValidators: true,
-  });
+  let data = await Bootcomp.findById(req.params.id);
+
   if (!data)
     return next(
       new errorResponse(`No bootcomp found with id ${req.params.id}`, 404)
     );
+
+  // Ensure that the user owns this bootcamp
+  if (data.user.toString() !== req.user.id && req.user.role !== "admin") {
+    return next(
+      new errorResponse(`You are not allowed to edit this bootcamp`, 403)
+    );
+  }
+
+  data = await Bootcomp.findByIdAndUpdate(req.params.id, req.body, {
+    new: true,
+    runValidators: true,
+  });
+
   res.status(200).send({
     status: "success",
     data,
@@ -63,6 +89,12 @@ exports.deletebootcomp = asyncHandler(async (req, res, next) => {
     return next(
       new errorResponse(`No bootcomp found with id ${req.params.id}`, 404)
     );
+  // Ensure that the user owns this bootcamp
+  if (data.user.toString() !== req.user.id && req.user.role !== "admin") {
+    return next(
+      new errorResponse(`You are not allowed to edit this bootcamp`, 403)
+    );
+  }
   data.remove();
   res.status(200).send({
     status: "success",
@@ -105,6 +137,12 @@ exports.bootcampPhotoupload = asyncHandler(async (req, res, next) => {
     return next(
       new errorResponse(`No bootcomp found with id ${req.params.id}`, 404)
     );
+  // Ensure that the user owns this bootcamp
+  if (data.user.toString() !== req.user.id && req.user.role !== "admin") {
+    return next(
+      new errorResponse(`You are not allowed to edit this bootcamp`, 403)
+    );
+  }
   if (!req.files) {
     return next(new errorResponse(`Please upload a file`, 400));
   }
@@ -128,7 +166,10 @@ exports.bootcampPhotoupload = asyncHandler(async (req, res, next) => {
         new errorResponse(`No bootcomp found with id ${req.params.id}`, 404)
       );
     }
-    await Bootcomp.findByIdAndUpdate(req.params.id, { photo: file.name });
+
+    await Bootcomp.findByIdAndUpdate(req.params.id, {
+      photo: file.name,
+    });
     res.status(200).send({
       status: "success",
       data: file.name,
