@@ -16,9 +16,13 @@ const {
 
 // other resources
 const courseRouter = require("./courses");
+const reviwRouter = require("./reviews");
 
 // get course for specific bootcamps
 router.use("/:bootcampId/courses", courseRouter);
+
+// get reviews for specific bootcamps
+router.use("/:bootcampId/reviews", reviwRouter);
 
 // upload photo
 router
