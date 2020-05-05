@@ -12,6 +12,12 @@ const mongo_connect = require("./config/database");
 const colors = require("colors");
 const errorhandler = require("./middleware/error");
 const cookieParser = require("cookie-parser");
+const mongoSanitize = require("express-mongo-sanitize");
+const helmet = require("helmet");
+const xss = require("xss-clean");
+const ratelimit = require("express-rate-limit");
+const hpp = require("hpp");
+const cors = require("cors");
 
 // load env vars
 dotenv.config({ path: "./config/config.env" });
@@ -33,8 +39,27 @@ if (process.env.NODE_ENV === "development") {
 // file uploading
 app.use(fileuplaod());
 
+// set secure headers
+app.use(helmet());
+// Prevent xss attacks
+app.use(xss());
+// Rate limiting
+const limiter = ratelimit({
+  windowMs: 10 * 60 * 1000, //10 minutes
+  max: 100,
+});
+app.use(limiter);
+
+// Prevent http param pollution
+app.use(hpp());
+
+// Enable cors
+app.use(cors());
+
 app.use(express.static(path.join(__dirname, "public")));
 
+// sanitaze data
+app.use(mongoSanitize());
 // Routes
 app.use("/api/v1/bootcomps", bootcomps);
 app.use("/api/v1/courses", courses);
